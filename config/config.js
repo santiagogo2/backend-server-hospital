@@ -1,0 +1,1 @@
+module.exports.SEED = '@este-es@un-seed-para@backend-hospital@#2020';

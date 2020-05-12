@@ -1,6 +1,9 @@
 'use strict'
 var express = require('express');
 var bcrypt = require('bcryptjs');
+var jwt = require('jsonwebtoken');
+
+var mdAuthentication = require('../middlewares/authentication');
 
 var app = express();
 
@@ -29,7 +32,7 @@ app.get('/', (req, res, next) => {
 // ============================================
 // Crear un nuevo usuario
 // ============================================
-app.post('/', (req, res) => {
+app.post('/', mdAuthentication.tokenVerification, (req, res) => {
 	var body = req.body;
 
 	var usuario = new Usuario({
@@ -51,7 +54,87 @@ app.post('/', (req, res) => {
 		}
 		res.status(201).json({
 			ok: true,
-			usuario
+			usuario,
+			authenticatedUser: req.usuario 
+		});
+	});
+});
+
+// ============================================
+// Actualizar usuario
+// ============================================
+app.put('/:id', (req, res) => {
+	var id = req.params.id;
+	var body = req.body;
+
+	Usuario.findById( id, (error, userFinded) => {
+		if(error){
+			return res.status(500).json({
+				ok: false,
+				message: 'Error al buscar usuario',
+				errors: error
+			});
+		}
+
+		if(!userFinded){
+			return res.status(400).json({
+				ok: false,
+				message: 'El usuario con el id ' + id + ' no existe',
+				errors: { message: 'No existe un usuario con ese ID' }
+			});
+		}
+
+		userFinded.nombre = body.nombre;
+		userFinded.apellidos = body.apellidos;
+		userFinded.email = body.email;
+		userFinded.role = body.role;
+
+		userFinded.save( (error, userSaved) => {
+			if(error){
+				return res.status(400).json({
+					ok: false,
+					message: 'Error al actualizar el usuario',
+					errors: error
+				});
+			}
+
+			userSaved.password = ">:)";
+
+			res.status(200).json({
+				ok: true,
+				userSaved
+			});
+		});
+
+	});
+});
+
+// ============================================
+// Eliminar usuario
+// ============================================
+app.delete('/:id', (req, res) => {
+	var id = req.params.id;
+
+	Usuario.findByIdAndRemove( id, (error, userDeleted) => {
+		if(error){
+			return res.status(500).json({
+				ok: false,
+				message: 'Error al buscar usuario',
+				errors: error
+			});
+		}
+
+		if(!userDeleted){
+			return res.status(400).json({
+				ok: false,
+				message: 'El usuario con el id ' + id + ' no existe',
+				errors: { message: 'No existe un usuario con ese ID' }
+			});
+		}
+
+		res.status(200).json({
+			ok: true,
+			userDeleted
 		});
 	});
 });
