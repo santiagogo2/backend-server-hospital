@@ -13,7 +13,12 @@ var Usuario = require('../models/usuario');
 // Obtener todos los usuarios
 // ============================================
 app.get('/', (req, res, next) => {
-	Usuario.find({}, 'nombre apellidos img role') // Filtra los elementos del documento que se retornan en la petición
+	var desde = req.query.desde || 0;
+	desde = Number(desde); // Se debe validar esta información o no va a pasar el código
+
+	Usuario.find({}, 'nombre apellidos email img role') // Filtra los elementos del documento que se retornan en la petición
+		   .skip(desde)
+		   .limit(5)
 		   .exec((error, usuarios) => {
 				if(error){
 					return res.status(500).json({
@@ -22,9 +27,21 @@ app.get('/', (req, res, next) => {
 						errors: error
 					});
 				}
-				res.status(200).json({
-					ok: true,
-					usuarios
+
+				Usuario.count({}, (error, total) => {
+					if(error){
+						return res.status(500).json({
+							ok: false,
+							mensaje: 'Error en el conteo de los usuarios',
+							errors: error
+						});
+					}
+
+					res.status(200).json({
+						ok: true,
+						total,
+						usuarios,
+					});
 				});
 	});
 });

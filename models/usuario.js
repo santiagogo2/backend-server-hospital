@@ -13,6 +13,7 @@ var usuarioSchema = new Schema({
 	apellidos: { type: String, required: [true, 'Los apellidos son requeridos'] },
 	email: { type: String, unique: true, required: [true, 'El correo es necesario'] },
 	password: { type: String, required: [true, 'La contraseña es necesaria'] },
+	img: { type: String, required: false },
 	role: { type: String, required: true, default: 'USER_ROLE', enum: rolesValidos },
 });
 
